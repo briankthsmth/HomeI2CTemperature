@@ -3,6 +3,7 @@ import smbus
 
 from pyhap.accessory import Accessory
 from pyhap.const import CATEGORY_SENSOR
+from Display import Display
 
 class I2CTemperatureAccessory(Accessory):
     category = CATEGORY_SENSOR
@@ -11,21 +12,27 @@ class I2CTemperatureAccessory(Accessory):
     register_temp = 0x00
 
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, display, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+		self.display = display
+		
         # Setup the I2C bus
         self.i2c_bus = smbus.SMBus(self.i2c_channel)
 
         # Setup the HAP service for this accessory
         service_temp = self.add_preload_service('TemperatureSensor')
         self.char_temp = service_temp.configure_char('CurrentTemperature')
-
+		self.char_temp.setter_callback = self.handle_temperature_change
+		
     @Accessory.run_at_interval(3)
     async def run(self):
         self.char_temp.set_value(self.read_temperature())
 
 
+	def handle_temperature_change(self, value):
+		self.display.display_temperature(value)
+		
     def read_temperature(self):
         value = self.i2c_bus.read_i2c_block_data(self.i2c_address, self.register_temp, 2)
 
