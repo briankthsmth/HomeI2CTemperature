@@ -31,7 +31,7 @@ class I2CTemperatureAccessory(Accessory):
 
 
     def handle_temperature_change(self, value):
-        self.display.display_temperature(value)
+        #self.display.display_temperature(value)
         
     def read_temperature(self):
         value = self.i2c_bus.read_i2c_block_data(self.i2c_address, self.register_temp, 2)
